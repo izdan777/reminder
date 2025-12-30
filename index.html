@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Web Portal</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo">My Portal</div>
+
+    <nav id="navMenu">
+      <a href="#" data-page="documents">DOCUMENTS</a>
+      <a href="#" data-page="mom">MOM MEDICAL HISTORY</a>
+      <a href="#" data-page="dad">DAD MEDICAL HISTORY</a>
+      <a href="#" data-page="reminders">REMINDERS</a>
+    </nav>
+
+    <div class="menu-toggle" id="menuToggle">☰</div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="content">
+
+    <section id="documents" class="page active">
+      <h1>Documents</h1>
+      <p>Store and manage important documents here.</p>
+    </section>
+
+    <section id="mom" class="page">
+      <h1>Mom Medical History</h1>
+      <p>Medical records and notes related to mom.</p>
+    </section>
+
+    <section id="dad" class="page">
+      <h1>Dad Medical History</h1>
+      <p>Medical records and notes related to dad.</p>
+    </section>
+
+    <section id="reminders" class="page">
+      <h1>Reminders</h1>
+      <button class="add-btn" id="addReminderBtn">+ Add Reminder</button>
+      <div id="reminderList" class="reminder-list"></div>
+    </section>
+
+  </main>
+
+  <!-- MODAL -->
+  <div class="modal" id="reminderModal">
+    <div class="modal-content">
+      <h2 id="modalTitle">Add Reminder</h2>
+      <label>Reminder Detail:</label>
+      <textarea id="reminderDetail" placeholder="Enter reminder detail"></textarea>
+      <label>Date:</label>
+      <input type="date" id="reminderDate" required />
+      <label>Time (optional):</label>
+      <input type="time" id="reminderTime" />
+      <div class="modal-buttons">
+        <button id="saveReminderBtn">Save</button>
+        <button id="cancelReminderBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
