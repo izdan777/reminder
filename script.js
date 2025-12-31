@@ -1,3 +1,6 @@
+import { db } from "./config.js";
+import { ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
 // NAVIGATION
 const navLinks = document.querySelectorAll("nav a");
 const pages = document.querySelectorAll(".page");
@@ -18,8 +21,7 @@ menuToggle.addEventListener("click", () => {
 });
 
 // REMINDERS LOGIC
-let reminders = [];
-let editId = null;
+let editKey = null;
 
 const addBtn = document.getElementById("addReminderBtn");
 const modal = document.getElementById("reminderModal");
@@ -50,7 +52,7 @@ function formatDateDDMMYYYY(dateStr) {
 
 // Open modal
 addBtn.addEventListener("click", () => {
-  editId = null;
+  editKey = null;
   modalTitle.textContent = "Add Reminder";
   reminderDetail.value = "";
   reminderDate.value = "";
@@ -74,39 +76,33 @@ saveBtn.addEventListener("click", () => {
     return;
   }
 
-  const newReminder = {
-    id: editId ? editId : Date.now(),
-    detail,
-    date,
-    time,
-    createdAt: new Date().toISOString()
-  };
+  const reminderData = { detail, date, time };
 
-  if (editId) {
-    reminders = reminders.map(r => r.id === editId ? newReminder : r);
+  if (editKey) {
+    // Edit existing reminder
+    const updateRef = ref(db, 'reminders/' + editKey);
+    update(updateRef, reminderData);
   } else {
-    reminders.push(newReminder);
+    // Add new reminder
+    const remindersRef = ref(db, 'reminders');
+    const newReminderRef = push(remindersRef);
+    set(newReminderRef, reminderData);
   }
 
   modal.style.display = "none";
-  renderReminders();
 });
 
-// Render reminders
-function renderReminders() {
+// Render reminders from DB
+function renderReminders(data) {
   const now = new Date();
-  // Remove past reminders immediately
-  reminders = reminders.filter(r => {
-    const reminderDateTime = parseLocalDateTime(r.date, r.time);
-    return reminderDateTime > now;
-  });
-
-  // Sort by date/time
-  reminders.sort((a, b) => parseLocalDateTime(a.date, a.time) - parseLocalDateTime(b.date, b.time));
-
   reminderList.innerHTML = "";
 
-  reminders.forEach(r => {
+  if (!data) return;
+
+  Object.entries(data).forEach(([key, r]) => {
+    const reminderDateTime = parseLocalDateTime(r.date, r.time);
+    if (reminderDateTime <= now) return; // skip past reminders
+
     const card = document.createElement("div");
     card.className = "reminder-card";
 
@@ -116,23 +112,22 @@ function renderReminders() {
     const dateText = document.createElement("p");
     dateText.textContent = r.time ? `Date: ${formatDateDDMMYYYY(r.date)} ${r.time}` : `Date: ${formatDateDDMMYYYY(r.date)}`;
 
-    const remaining = document.createElement("p");
-    const reminderDateTime = parseLocalDateTime(r.date, r.time);
     const diffMs = reminderDateTime - now;
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const diffHrs = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const diffMin = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
+    const remaining = document.createElement("p");
     remaining.textContent = `Remaining: ${diffDays} days ${diffHrs} hrs ${diffMin} mins`;
 
     const btnDiv = document.createElement("div");
     btnDiv.className = "card-buttons";
     const editBtn = document.createElement("button");
     editBtn.textContent = "Edit";
-    editBtn.onclick = () => editReminder(r.id);
+    editBtn.onclick = () => editReminder(key, r);
     const delBtn = document.createElement("button");
     delBtn.textContent = "Delete";
-    delBtn.onclick = () => deleteReminder(r.id);
+    delBtn.onclick = () => deleteReminder(key);
 
     btnDiv.appendChild(editBtn);
     btnDiv.appendChild(delBtn);
@@ -147,10 +142,8 @@ function renderReminders() {
 }
 
 // Edit reminder
-function editReminder(id) {
-  const r = reminders.find(r => r.id === id);
-  if (!r) return;
-  editId = id;
+function editReminder(key, r) {
+  editKey = key;
   modalTitle.textContent = "Edit Reminder";
   reminderDetail.value = r.detail;
   reminderDate.value = r.date;
@@ -159,14 +152,24 @@ function editReminder(id) {
 }
 
 // Delete reminder
-function deleteReminder(id) {
+function deleteReminder(key) {
   if (confirm("Delete this reminder?")) {
-    reminders = reminders.filter(r => r.id !== id);
-    renderReminders();
+    const delRef = ref(db, 'reminders/' + key);
+    remove(delRef);
   }
 }
 
+// Listen for changes in DB
+const remindersRef = ref(db, 'reminders');
+onValue(remindersRef, (snapshot) => {
+  renderReminders(snapshot.val());
+});
+
 // Auto update remaining time every minute
 setInterval(() => {
-  if (pages[3].classList.contains("active")) renderReminders();
+  if (pages[3].classList.contains("active")) {
+    onValue(remindersRef, (snapshot) => {
+      renderReminders(snapshot.val());
+    });
+  }
 }, 60000);
