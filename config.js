@@ -1,15 +1,16 @@
+// config.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// Firebase configuration
+// Read Firebase keys from window variables
 const firebaseConfig = {
-  apiKey: "AIzaSyAId4jEj9C-CZrwZfp2lAh8GCl_Xt0lWCY",
-  authDomain: "myportal-c323f.firebaseapp.com",
-  databaseURL: "https://myportal-c323f-default-rtdb.firebaseio.com",
-  projectId: "myportal-c323f",
-  storageBucket: "myportal-c323f.firebasestorage.app",
-  messagingSenderId: "24565038126",
-  appId: "1:24565038126:web:f952365de4a7624f1133bf"
+  apiKey: window.FIREBASE_API_KEY,
+  authDomain: window.FIREBASE_AUTH_DOMAIN,
+  databaseURL: window.FIREBASE_DATABASE_URL,
+  projectId: window.FIREBASE_PROJECT_ID,
+  storageBucket: window.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: window.FIREBASE_MESSAGING_SENDER_ID,
+  appId: window.FIREBASE_APP_ID
 };
 
 // Initialize Firebase
